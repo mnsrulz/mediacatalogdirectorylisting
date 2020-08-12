@@ -13,7 +13,7 @@ import got from 'got';
 const MediaList = mongoose.model('MediaCatalog', MediaSchema);
 const LinksCacheList = mongoose.model('LinksCache', LinksCacheSchema);
 
-const viewFile: string = __dirname + '/../views/files.ejs';
+const viewFile: string = __dirname + '/../../views/files.ejs';
 const mediaService = new MediaService();
 
 export class DirectoryController {
