@@ -1,0 +1,8 @@
+<html>
+<head><title>Index of <%- title %></title></head>
+<body>
+<h1>Index of <%- title %></h1><hr><pre><a href="../">../</a><% for(var i=0; i < data.length; i++) { %>
+<a href="<%= encodeURIComponent(data[i].id) %><% if(data[i].isDirectory) { %>/<% } %>"><%= data[i].title %></a>            14-Feb-2020 04:33            -<% } 
+%>
+</pre><hr></body>
+</html>
