@@ -1,7 +1,3 @@
-import * as fs from "fs";
-// import express from "express";
-import nurlresolver from "nurlresolver";
-
 import express from "express";
 import * as bodyParser from "body-parser";
 import { Routes } from "./routes/appRoutes";
@@ -17,7 +13,7 @@ class App {
     constructor() {
         this.authSetup();
         this.config();
-        this.mongoSetup();
+        this.mongoSetup();        
         this.routePrv.routes(this.app);
     }
 

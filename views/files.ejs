@@ -42,7 +42,11 @@
                     </a>
                 </h3>
                 <span></span>
-                <time datetime="2006-01-02">29 Jun 2020</time>
+                <time datetime="2006-01-02">                    
+                    <% if (data[i].lastModified) { %>
+                        <%= moment(data[i].lastModified).format('MMM-DD-YYYY')%>    
+                     <% } %>                    
+                </time>                
             </div>
             <% }%>
         </section>

@@ -9,6 +9,7 @@ import path from 'path';
 import nurlresolver from 'nurlresolver';
 
 import got from 'got';
+import moment from 'moment';
 
 const MediaList = mongoose.model('MediaCatalog', MediaSchema);
 const LinksCacheList = mongoose.model('LinksCache', LinksCacheSchema);
@@ -26,15 +27,6 @@ export class DirectoryController {
         });
     }
 
-    // public updateContact(req: Request, res: Response) {
-    //     MediaList.findOneAndUpdate({ _id: req.params.contactId }, req.body, { new: true }, (err, contact) => {
-    //         if (err) {
-    //             res.send(err);
-    //         }
-    //         res.json(contact);
-    //     });
-    // }
-
     public async getYearsOfMovie(req: Request, res: Response) {
         const result: FileNode[] = await mediaService.fetchYearsByMediaType();
         const output = await ejs.renderFile(viewFile, {
@@ -49,15 +41,17 @@ export class DirectoryController {
         const result = await ejs.renderFile(viewFile, {
             title: req.url,
             data: mediaByYear,
+            moment : moment
         })
         res.end(result);
     }
-
+    
     public async getTVShowsOfYear(req: Request, res: Response) {
         const mediaByYear = await mediaService.fetchMediaByYear('TV', req.params.year);
         const result = await ejs.renderFile(viewFile, {
             title: req.url,
             data: mediaByYear,
+            moment : moment
         })
         res.end(result);
     }

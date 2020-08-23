@@ -30,7 +30,7 @@ export class MediaService {
             var allMoviesGroupByYear: any[] = await MediaList.aggregate(
                 [
                     { "$match": { "imdbInfo.year": `${year}`, "tmdbInfo.media": mediaType } },    //List only movies
-                    { "$group": { _id: "$imdbInfo.id", title: { $max: "$tmdbInfo.title" } } },
+                    { "$group": { _id: "$imdbInfo.id", title: { $max: "$tmdbInfo.title" }, lastModified: {$max:"$media_document.modifiedTime"} } },
                     { $sort: { title: 1 } },
                 ],
             );
@@ -40,6 +40,7 @@ export class MediaService {
                 const f: FileNode = {
                     id: `${title}-${x._id}`,
                     parent: x._id,
+                    lastModified: x.lastModified,
                     title: title,
                     isDirectory: true,
                     size: 0,
@@ -81,4 +82,5 @@ export interface FileNode {
     title: string;
     isDirectory: boolean;
     size?: number;
+    lastModified?: Date;
 }

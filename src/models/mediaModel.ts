@@ -35,7 +35,9 @@ export const LinksCacheSchema = new Schema({
     imdbId: String,
     parentLink: String,
     playableLink: String,
-    status: String,
-    lastUpdated: Date,
-    title: String
+    status: String,    
+    lastUpdated: Date,  //this represents the last sync date of the process
+    title: String,
+    size: Number,
+    lastModfied: Date   //this represents the last modification date of the file from metadata of the network file
 }, { collection: 'links_cache' });
