@@ -34,6 +34,7 @@
     "mongodb": "^3.5.9",
     "mongoose": "^5.9.20",
     "node-fetch": "^2.6.0",
-    "nurlresolver": "^1.7.0"
+    "nurlresolver": "^1.8.0",
+    "pretty-bytes": "^5.4.1"
   }
 }

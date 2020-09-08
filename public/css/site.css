@@ -255,7 +255,7 @@ section.item-list .item {
 
 section.item-list .item h3 {
     font-weight: 700;
-    width: 50%;
+    width: calc(100% - 230px);
     white-space: nowrap;
     overflow: hidden;
     text-align: left;
@@ -265,12 +265,13 @@ section.item-list .item h3 {
 }
 
 section.item-list .item span {
-    width: calc(25% - 128px);
+    width: 96px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     flex: auto;
     margin-right: 16px;
+    text-align: right;
 }
 
 section.item-list .item time {

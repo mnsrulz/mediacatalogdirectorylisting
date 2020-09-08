@@ -6,29 +6,29 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Index of <%- decodeURIComponent(title) %></title>
     <!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-176119048-1"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'UA-176119048-1');
-</script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-176119048-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'UA-176119048-1');
+    </script>
 
     <link rel="stylesheet" href="/css/site.css">
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
 </head>
+
 <body>
     <header class="site-header">
         <nav class="site-nav" role="navigation" aria-label="breadcrumb">
             <ol itemscope itemtype="https://schema.org/BreadcrumbList" class="breadcrumb">
                 <li class="breadcrumb-item active " aria-current="page" itemprop="itemListElement" itemscope
-                    itemtype="https://schema.org/ListItem">                    
+                    itemtype="https://schema.org/ListItem">
                     <span itemprop="name">Index of <%- decodeURIComponent(title) %></span>
                     <meta itemprop="position" content="1" />
                 </li>
             </ol>
-        </nav>        
+        </nav>
     </header>
 
     <main id="content">
@@ -51,12 +51,16 @@
                         <%= data[i].title %>
                     </a>
                 </h3>
-                <span></span>
-                <time datetime="2006-01-02">                    
+                <span>
+                    <% if (data[i].size) { %>
+                    <%= prettyBytes(data[i].size)%>
+                    <% } %>
+                </span>
+                <time datetime="2006-01-02">
                     <% if (data[i].lastModified) { %>
-                        <%= moment(data[i].lastModified).format('MMM-DD-YYYY')%>    
-                     <% } %>                    
-                </time>                
+                    <%= moment(data[i].lastModified).format('MMM-DD-YYYY')%>
+                    <% } %>
+                </time>
             </div>
             <% }%>
         </section>

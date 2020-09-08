@@ -1,5 +1,6 @@
 import * as mongoose from 'mongoose';
 import { MediaSchema, LinksCacheSchema } from '../models/mediaModel';
+import { FileNode } from '../models/fileNode';
 
 const MediaList = mongoose.model('MediaCatalog', MediaSchema);
 
@@ -76,11 +77,4 @@ export class MediaService {
     }
 }
 
-export interface FileNode {
-    parent: string;
-    id: string;
-    title: string;
-    isDirectory: boolean;
-    size?: number;
-    lastModified?: Date;
-}
+
