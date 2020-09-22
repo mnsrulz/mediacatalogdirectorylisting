@@ -2,13 +2,14 @@ import * as mongoose from 'mongoose';
 import { MediaSchema, LinksCacheSchema } from '../models/mediaModel';
 import nurlresolver from 'nurlresolver';
 import { FileNode } from "../models/fileNode";
+import { ResolvedMediaItem } from 'nurlresolver/dist/BaseResolver';
 const LinksCacheList = mongoose.model('LinksCache', LinksCacheSchema);
 const MediaList = mongoose.model('MediaCatalog', MediaSchema);
 const refreshLinkTimeout = (1000 * 24 * 60 * 60);
 
 export class MediaSourceService {
 
-    public async listMovieSources(imdbId: string): Promise<FileNode[]> {
+    public async listMediaSources(imdbId: string): Promise<FileNode[]> {
         var allCacheLinksForGivenImdbId: any[] = await LinksCacheList.find({ imdbId: imdbId, status: 'Valid' });
 
         if (allCacheLinksForGivenImdbId.length === 0
@@ -70,34 +71,49 @@ export class MediaSourceService {
                 status: 'Valid',
                 size: size,
                 lastModified: lastModified,
-                contentType: x.contentType
+                contentType: x.contentType,
+                headers: x.headers
             }, { upsert: true, setDefaultsOnInsert: true });
             allPromiseForPersistence.push(persistencePromise);
         });
         await Promise.all(allPromiseForPersistence);
     }
-    
-    public async Refresh(documentId: string): Promise<string> {
+
+    async Refresh(documentId: string): Promise<ResolvedMediaItem | null> {
         const linkInfo: any = await LinksCacheList.findById(documentId);
-        let linkToPlay = ''
         console.log(`Refreshing link for docid: ${documentId}, parent: ${linkInfo.parentLink}`);
-        const resolvedLinks = await nurlresolver.resolveRecursive(linkInfo.parentLink);
+        const resolvedLinks = await nurlresolver.resolveRecursive(linkInfo.parentLink, {
+            extractMetaInformation: true
+        });
         if (resolvedLinks && resolvedLinks.length >= 1) {
             const x = resolvedLinks[0];
-            await LinksCacheList.updateOne({ _id: documentId }, {
+
+            const size = x.size && parseInt(x.size);
+            let lastModified = null;
+
+            if (x.lastModified) {
+                lastModified = new Date(x.lastModified);
+            }
+            const documentToPersist = {
                 title: x.title,
                 playableLink: x.link,
                 isPlayable: x.isPlayable,
                 parentLink: x.parent,
                 lastUpdated: Date.now(),
-                status: 'Valid'
-            });
-            linkToPlay = x.link;
+                status: 'Valid',
+                size: size,
+                lastModified: lastModified,
+                contentType: x.contentType,
+                headers: x.headers
+            };
+            console.log(`Document ${documentId} source refreshed.`, documentToPersist);
+            await LinksCacheList.updateOne({ _id: documentId }, documentToPersist);
+            return x;
         } else {
             this.MarkDocumentAsDead(documentId);
             console.log(`Marking ${documentId} as Dead, since no link resolved for given parent link: ${linkInfo.parentLink}`);
         }
-        return linkToPlay;
+        return null;
     }
 
     public async MarkDocumentAsDead(documentId: string) {

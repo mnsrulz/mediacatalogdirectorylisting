@@ -667,3 +667,8 @@ article~.pagination {
         margin: 0 auto
     }
 }
+
+input.action-button{
+    right: 0;
+    position: absolute;
+}

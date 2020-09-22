@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,6 +30,9 @@
                 </li>
             </ol>
         </nav>
+        <% if(options) { %>
+        <input type="button" id='refreshSources' onclick="refreshSources()" class="action-button" value="Refresh Sources" />
+        <% }%>
     </header>
 
     <main id="content">
@@ -44,11 +48,11 @@
                     <span class="iconify" data-icon="ion:folder-open-outline" data-inline="false"></span>
                     <% } else{%>
                     <span class="iconify" data-icon="gg:file-document" data-inline="false"></span>
-                    <% } %></ion-icon>
+                    <% } %>
                     &nbsp;
                     <a title="<%= data[i].title %>"
                         href="<%= encodeURIComponent(data[i].id) %><% if(data[i].isDirectory) { %>/<% } %>">
-                        <%= data[i].title %>
+                        <%= data[i].id %>
                     </a>
                 </h3>
                 <span>
@@ -72,5 +76,32 @@
             <a href="https://github.com/mnsrulz" target="_blank" rel="noopener noreferrer">mnsrulz</a>
         </span>
     </footer>
+    <script>
+        async function refreshSources() {
+            try {
+                document.querySelector('#refreshSources').value='Refreshing...';
+                document.querySelector('#refreshSources').disabled = true;
+                const response = await fetch('refreshSources', {
+                    method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                    // mode: 'cors', // no-cors, *cors, same-origin
+                    // cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+                    // credentials: 'same-origin', // include, *same-origin, omit
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // 'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    // redirect: 'follow', // manual, *follow, error
+                    // referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                    // body: JSON.stringify(data) // body data type must match "Content-Type" header
+                });
+                const jsonResponse = await response.json();
+                document.location.reload();
+            } catch (error) {
+                alert('error occurred');
+                console.log(error);
+            }
+        }
+    </script>
 </body>
+
 </html>
