@@ -17,7 +17,7 @@ export class ContentStreamerService {
         const linkInfo: any = await LinksCacheList.findById(documentId);
         if (linkInfo == null) return null;
         const linkToPlay = linkInfo.playableLink;
-        const playableLinkContentLength = linkInfo.size;
+        const playableLinkContentLength = parseInt(linkInfo.size);
         const headersForInboundRequest: Record<string, string> = linkInfo.headers || {};
         rangeHeader && (headersForInboundRequest['range'] = rangeHeader);
 
@@ -25,17 +25,16 @@ export class ContentStreamerService {
             const response = await fetch(linkToPlay, {
                 headers: headersForInboundRequest
             });
-
             if (response.ok && response.body) {
-                let potentialContentLength;
+                let potentialContentLength: number | undefined;
                 if (rangeHeader) {
-                    potentialContentLength = AppUtils.parseContentLengthFromRangeHeader(response.headers.get('content-range'))
+                    potentialContentLength = AppUtils.parseContentLengthFromRangeHeader(response.headers.get('content-range'));
                 } else {
-                    potentialContentLength = response.headers.get('content-length');
+                    potentialContentLength = parseInt(response.headers.get('content-length') || '0');
                 }
                 if (potentialContentLength) {
-                    if (playableLinkContentLength === parseInt(potentialContentLength)) {
-                        console.log('content length matches up.. piping the response');
+                    if (playableLinkContentLength === potentialContentLength) {
+                        console.log(`content length ${playableLinkContentLength} matches up.. piping response with total content length ${response.headers.get('content-length')}`);
                         const headersForStreamingRequest: Record<string, string> = {};
                         response.headers.forEach((_headerValue, _headerName) => {
                             headerNamesToPipe.includes(_headerName) && (headersForStreamingRequest[_headerName] = _headerValue);

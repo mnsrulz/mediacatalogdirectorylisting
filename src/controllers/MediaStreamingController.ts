@@ -21,7 +21,8 @@ export class MediaStreamingController {
                 res.writeHead(streamResult.status, streamResult.statusText, streamResult.headers);
                 await streamPipeline(streamResult.body, res);
             } else {
-                res.sendStatus(404).send('NOT FOUND');
+                console.log(`Unable to resolve stream for ${documentId}. Responding with 404..`);
+                res.sendStatus(404);
             }
         } catch (error) {
             console.log('an error occurred while streaming the media content.', error.message);

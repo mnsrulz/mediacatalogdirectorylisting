@@ -23,12 +23,18 @@ export class MediaSourceService {
 
         const result: FileNode[] = allCacheLinksForGivenImdbId.map(x => {
             return {
-                parent: x._id,
+                parent: x.parentLink,
                 title: x.title,
                 isDirectory: false,
                 size: x.size,
                 lastModified: x.lastModified,
-                documentId: x._id
+                documentId: x._id,
+                headers: x.headers,
+                imdbId: x.imdbId,
+                lastUpdated: x.lastUpdated,
+                status: x.status,
+                ts: x.ts,
+                playableLink: x.playableLink
             } as FileNode
         });
         return result;

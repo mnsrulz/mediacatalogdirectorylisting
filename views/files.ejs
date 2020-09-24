@@ -17,6 +17,7 @@
 
     <link rel="stylesheet" href="/css/site.css">
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script src="https://raw.githack.com/Nycto/PicoModal/master/src/picoModal.js"></script>
 </head>
 
 <body>
@@ -31,7 +32,8 @@
             </ol>
         </nav>
         <% if(options) { %>
-        <input type="button" id='refreshSources' onclick="refreshSources()" class="action-button" value="Refresh Sources" />
+        <input type="button" id='refreshSources' onclick="refreshSources()" class="action-button"
+            value="Refresh Sources" />
         <% }%>
     </header>
 
@@ -47,13 +49,14 @@
                     <% if(data[i].isDirectory) { %>
                     <span class="iconify" data-icon="ion:folder-open-outline" data-inline="false"></span>
                     <% } else{%>
-                    <span class="iconify" data-icon="gg:file-document" data-inline="false"></span>
+                    <span class="iconify" onclick="showTooltip('<%= data[i].documentId %>')" data-icon="gg:file-document" data-docId="<%= data[i].documentId %>"
+                        data-inline="false"></span>
                     <% } %>
                     &nbsp;
-                    <a title="<%= data[i].title %>"
+                    <a title=" <%= data[i].title %>"
                         href="<%= encodeURIComponent(data[i].id) %><% if(data[i].isDirectory) { %>/<% } %>">
                         <%= data[i].id %>
-                    </a>
+                        </a>
                 </h3>
                 <span>
                     <% if (data[i].size) { %>
@@ -79,7 +82,7 @@
     <script>
         async function refreshSources() {
             try {
-                document.querySelector('#refreshSources').value='Refreshing...';
+                document.querySelector('#refreshSources').value = 'Refreshing...';
                 document.querySelector('#refreshSources').disabled = true;
                 const response = await fetch('refreshSources', {
                     method: 'POST', // *GET, POST, PUT, DELETE, etc.
@@ -100,6 +103,33 @@
                 alert('error occurred');
                 console.log(error);
             }
+        }
+
+        var data = JSON.parse('<%- JSON.stringify(data) %>');
+
+        function syntaxHighlight(json) {
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                var cls = 'number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'key';
+                    } else {
+                        cls = 'string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        function showTooltip(e) {
+            const model = data.filter(x=>x.documentId === e).pop();
+            const modelStringify = JSON.stringify(model, undefined, 4);
+            picoModal(`<pre class='json-snippet'>${syntaxHighlight(modelStringify)}</pre>`).show();
         }
     </script>
 </body>

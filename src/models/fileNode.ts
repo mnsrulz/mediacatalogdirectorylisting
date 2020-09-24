@@ -7,6 +7,12 @@ export interface FileNode {
     isDirectory: boolean;
     size?: number;
     lastModified?: Date;
+    imdbId?: string;
+    lastUpdated?: Date;
+    status?: string;
+    ts?: Date;
+    headers?: Object;
+    playableLink?: string;
 }
 
 

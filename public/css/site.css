@@ -672,3 +672,10 @@ input.action-button{
     right: 0;
     position: absolute;
 }
+
+pre.json-snippet {outline: 1px solid #ccc; padding: 5px; margin: 5px;max-width:600px; }
+.string { color: green; }
+.number { color: darkorange; }
+.boolean { color: blue; }
+.null { color: magenta; }
+.key { color: red; }

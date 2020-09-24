@@ -1,8 +1,7 @@
 export default class AppUtils {
-    static parseContentLengthFromRangeHeader(headerValue: string | null): string | undefined {
+    static parseContentLengthFromRangeHeader(headerValue: string | null): number | undefined {
         if (headerValue) {
-            console.log(`parsing header value:${headerValue}`);
-            return headerValue.split('/').pop();
+            return parseInt(headerValue.split('/').pop() || '0');
         }
     }
 }
