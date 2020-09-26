@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Cache link viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            height: 100%;
+            padding: 10px;
+            color: #262626;
+            font-family: 'Helvetica Neue Light', 'Helvetica Neue', 'Segoe UI', Roboto, sans-serif, Arial;
+            font-size: 14px;
+            font-weight: 300;
+        }
+
+        h1 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            font-family: 'Helvetica Neue Light', 'Helvetica Neue', 'Segoe UI', Roboto, sans-serif, Arial;
+            font-weight: 300;
+        }
+
+        a {
+            color: #00B7FF;
+        }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.1/jsgrid.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.1/jsgrid-theme.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
+</head>
+
+<body>
+    <header>
+        <h1>Cache link viewer</h1>
+    </header>
+    <div id="jsGrid"></div>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.1/jsgrid.min.js"></script>
+    <script src="https://cdn.filesizejs.com/filesize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        $(function () {
+            $("#jsGrid").jsGrid({
+                //height: "90%",
+                width: "100%",
+                filtering: true,
+                inserting: false,
+                editing: false,
+                sorting: true,
+                paging: true,
+                autoload: true,
+                pageSize: 10,
+                pageButtonCount: 10,
+                pageLoading: true,
+                noDataContent: "No Record Found",
+                loadMessage: "Please, wait...",
+                controller: {
+                    loadData: function (filter) {
+                        return $.ajax({
+                            type: "GET",
+                            url: "/api/links",
+                            data: filter
+                        }).then(function (response) {
+                            var result = {
+                                data: response.results || [],
+                                itemsCount: response.count || 0
+                            }
+                            return result;
+                        });
+                    }
+                },
+                fields: [
+                    { title: "Title", name: "title", type: "text", width: 'auto' },
+                    { title: "Status", name: "status", type: "text", width: 80 },
+                    { title: "lastUpdated", name: "lastUpdated", type: "text", width: 180 },
+                    { title: "contentType", name: "contentType", type: "text", width: 180 },
+                    { title: "size", name: "size", type: "text", width: 80, itemTemplate: prettyBytes },
+                    {
+                        title: "Imdb#", name: "imdbId", type: "text", width: 80,
+                        itemTemplate: function (value) {
+                            return $("<a>").attr("href", `https://www.imdb.com/title/${value}`).text(value);
+                        }
+                    },
+                    // { name: "Age", type: "number", width: 50, filtering: false },
+                    {
+                        title: "Parent Link", name: "parentLink", type: "text", width: 200,
+                        itemTemplate: function (value) {
+                            var host = new URL(value).host;
+                            return $("<a>").attr("href", value).text(host);
+                        }
+                    },
+                    {
+                        title: "Playable Link", name: "playableLink", type: "text", width: 200,
+                        itemTemplate: function (value) {
+                            var host = new URL(value).host;
+                            return $("<a>").attr("href", value).text(host);
+                        }
+                    },
+                    {
+                        itemTemplate: function (_, item) {
+                            return $("<button>").attr("type", "button").text("Refresh")
+                                .on("click", async function () {
+                                    var refreshButton = $(this);
+                                    const documentId = item._id;
+                                    await refreshDocument(documentId, refreshButton);
+                                    toastr.success('Refresh completed!');                                    
+                                    $("#jsGrid").jsGrid("loadData");
+                                });
+                        }
+                    },
+                    //,
+                    // { name: "Country", type: "select", items: countries, valueField: "Id", textField: "Name" },
+                    // { name: "Married", type: "checkbox", title: "Is Married", sorting: false },
+                    // { type: "control" }
+                ]
+            });
+        });
+
+        async function refreshDocument(documentId, refreshButton) {
+            try {
+                refreshButton.text('Refreshing...').prop('disabled', true);
+                const response = await fetch(`/api/links/refresh/${documentId}`, {
+                    method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                    // mode: 'cors', // no-cors, *cors, same-origin
+                    // cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+                    // credentials: 'same-origin', // include, *same-origin, omit
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // 'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    // redirect: 'follow', // manual, *follow, error
+                    // referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                    // body: JSON.stringify(data) // body data type must match "Content-Type" header
+                });
+                const jsonResponse = await response.json();
+            } catch (error) {
+                toastr.error('Error occurred while refreshing the document.');
+                console.log(error);
+            } finally {
+                refreshButton.text('Refresh').prop('disabled', false);
+            }
+        }
+
+        function prettyBytes(v){
+            return v && filesize(v);
+        }
+
+
+    </script>
+</body>
+
+</html>
