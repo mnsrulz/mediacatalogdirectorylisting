@@ -28,7 +28,7 @@ export class LinkCacheController {
         var skip = limit * (pageNo - 1);
 
 
-        var countQuery = await LinksCacheList.find(dbFilter).estimatedDocumentCount();
+        var countQuery = await LinksCacheList.find(dbFilter).countDocuments();
         var sortOrder = (req.query.sortOrder && req.query.sortOrder === 'desc' && 1) || -1;
         var sortField = req.query.sortField?.toString() || 'title';
         var sort: any = {};

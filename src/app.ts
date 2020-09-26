@@ -3,25 +3,26 @@ import * as bodyParser from "body-parser";
 import { Routes } from "./routes/appRoutes";
 import mongoose from "mongoose";
 import basicAuth from 'express-basic-auth';
-import logger from "./services/Logger";
+import cors from 'cors';
 
 class App {
 
     public app: express.Application = express();
     public routePrv: Routes = new Routes();
     public mongoUrl: string = process.env.MONGODB_URI || '';
-
+    
     constructor() {
-        this.authSetup();
         this.config();
+        this.authSetup();
         this.mongoSetup();        
         this.routePrv.routes(this.app);
     }
 
     private config(): void {
+        this.app.use(cors());
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: false }));
-        // serving static files 
+        // serving static files         
         this.app.use(express.static('public'));
     }
 
@@ -34,8 +35,6 @@ class App {
         const userName = process.env.adminUserName || 'admin';
         const password = process.env.adminPassword || 'admin';
         const realm = process.env.realm || 'media-catalog-directory';
-        
-        logger.info('Using username and password as', userName, password);
 
         let users: { [username: string]: string } = {};
         users[userName] = password;
