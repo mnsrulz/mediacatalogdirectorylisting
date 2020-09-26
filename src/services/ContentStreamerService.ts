@@ -2,6 +2,7 @@ import { LinksCacheList } from "./../models/mediaModel";
 import AppUtils from "./AppUtils";
 
 import fetch from 'node-fetch';
+import logger from "./Logger";
 
 const headerNamesToPipe = ['content-length', 'content-range', 'content-type', 'range', 'last-modified', 'content-disposition', 'accept-ranges'];
 import { MediaSourceService } from './MediaSourceService';
@@ -19,7 +20,7 @@ export class ContentStreamerService {
         const linkToPlay = linkInfo.playableLink;
         const playableLinkContentLength = parseInt(linkInfo.size);
         const headersForInboundRequest: Record<string, string> = linkInfo.headers || {};
-        rangeHeader && (headersForInboundRequest['range'] = rangeHeader);
+        headersForInboundRequest['range'] = rangeHeader || 'bytes=0-';
 
         try {
             const response = await fetch(linkToPlay, {
@@ -27,18 +28,15 @@ export class ContentStreamerService {
             });
             if (response.ok && response.body) {
                 let potentialContentLength: number | undefined;
-                if (rangeHeader) {
-                    potentialContentLength = AppUtils.parseContentLengthFromRangeHeader(response.headers.get('content-range'));
-                } else {
-                    potentialContentLength = parseInt(response.headers.get('content-length') || '0');
-                }
+                potentialContentLength = AppUtils.parseContentLengthFromRangeHeader(response.headers.get('content-range')) 
+                                            || parseInt(response.headers.get('content-length') || '0');
                 if (potentialContentLength) {
                     if (playableLinkContentLength === potentialContentLength) {
-                        console.log(`content length ${playableLinkContentLength} matches up.. piping response with total content length ${response.headers.get('content-length')}`);
+                        logger.info(`content length ${playableLinkContentLength} matches up.. piping response with total content length ${response.headers.get('content-length')}`);
                         const headersForStreamingRequest: Record<string, string> = {};
                         response.headers.forEach((_headerValue, _headerName) => {
                             headerNamesToPipe.includes(_headerName) && (headersForStreamingRequest[_headerName] = _headerValue);
-                        })
+                        });
                         return {
                             headers: headersForStreamingRequest,
                             body: response.body,
@@ -46,14 +44,16 @@ export class ContentStreamerService {
                             statusText: response.statusText
                         }
                     } else {
-                        console.warn(`MISMATCH found in playableLinkContentLength (${playableLinkContentLength}) and potentialContentLength (${potentialContentLength})`);
+                        logger.warn(`MISMATCH found in playableLinkContentLength (${playableLinkContentLength}) and potentialContentLength (${potentialContentLength})`);
                     }
+                } else {
+                    logger.warn(`Unable to detect content length.`);
                 }
             } else {
-                console.warn(`Unexpected response code ${response.status} received while acquiring the media content stream.`);
+                logger.warn(`Unexpected response code ${response.status} received while acquiring the media content stream.`);
             }
         } catch (error) {
-            console.error('An unknown error occurred while acquiring the media content stream...');
+            logger.error('An unknown error occurred while acquiring the media content stream...');
         }
 
         const lastUpdatedDate: number = linkInfo.lastUpdated;

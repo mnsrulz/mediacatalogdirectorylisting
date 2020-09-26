@@ -3,6 +3,7 @@ import { MediaSchema, LinksCacheSchema } from '../models/mediaModel';
 import nurlresolver from 'nurlresolver';
 import { FileNode } from "../models/fileNode";
 import { ResolvedMediaItem } from 'nurlresolver/dist/BaseResolver';
+import logger from "./../services/Logger";
 const LinksCacheList = mongoose.model('LinksCache', LinksCacheSchema);
 const MediaList = mongoose.model('MediaCatalog', MediaSchema);
 const refreshLinkTimeout = (1000 * 24 * 60 * 60);
@@ -14,11 +15,9 @@ export class MediaSourceService {
 
         if (allCacheLinksForGivenImdbId.length === 0
             || allCacheLinksForGivenImdbId.some(x => x.lastUpdated < Date.now() - refreshLinkTimeout)) {
-            console.log('Refreshing the source for current imdbid');
+            logger.info('Refreshing the source for current imdbid');
             await this.refreshSources(imdbId);
             allCacheLinksForGivenImdbId = await LinksCacheList.find({ imdbId: imdbId, status: 'Valid' });
-        } else {
-            console.log('Sources are fresh... no need to refresh.');
         }
 
         const result: FileNode[] = allCacheLinksForGivenImdbId.map(x => {
@@ -41,7 +40,7 @@ export class MediaSourceService {
     }
 
     public async refreshSources(imdbId: string) {
-        console.log(`fetching media from url for imdbid: ${imdbId}`);
+        logger.info(`fetching media from url for imdbid: ${imdbId}`);
         await LinksCacheList.updateMany({ imdbId: imdbId }, { status: 'Refreshing', lastUpdated: Date.now() });
         var webLinks = await MediaList.find({ 'imdbInfo.id': imdbId });
         var allPromiseForRefreshSources: any[] = [];
@@ -87,7 +86,7 @@ export class MediaSourceService {
 
     async Refresh(documentId: string): Promise<ResolvedMediaItem | null> {
         const linkInfo: any = await LinksCacheList.findById(documentId);
-        console.log(`Refreshing link for docid: ${documentId}, parent: ${linkInfo.parentLink}`);
+        logger.info(`Refreshing link for docid: ${documentId}, parent: ${linkInfo.parentLink}`);
         const resolvedLinks = await nurlresolver.resolveRecursive(linkInfo.parentLink, {
             extractMetaInformation: true
         });
@@ -112,12 +111,12 @@ export class MediaSourceService {
                 contentType: x.contentType,
                 headers: x.headers
             };
-            console.log(`Document ${documentId} source refreshed.`, documentToPersist);
+            logger.info(`Document ${documentId} source refreshed.`, documentToPersist);
             await LinksCacheList.updateOne({ _id: documentId }, documentToPersist);
             return x;
         } else {
             this.MarkDocumentAsDead(documentId);
-            console.log(`Marking ${documentId} as Dead, since no link resolved for given parent link: ${linkInfo.parentLink}`);
+            logger.info(`Marking ${documentId} as Dead, since no link resolved for given parent link: ${linkInfo.parentLink}`);
         }
         return null;
     }

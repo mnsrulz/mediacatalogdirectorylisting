@@ -3,6 +3,7 @@ import * as bodyParser from "body-parser";
 import { Routes } from "./routes/appRoutes";
 import mongoose from "mongoose";
 import basicAuth from 'express-basic-auth';
+import logger from "./services/Logger";
 
 class App {
 
@@ -33,8 +34,8 @@ class App {
         const userName = process.env.adminUserName || 'admin';
         const password = process.env.adminPassword || 'admin';
         const realm = process.env.realm || 'media-catalog-directory';
-
-        console.log('Using username and password as', userName, password);
+        
+        logger.info('Using username and password as', userName, password);
 
         let users: { [username: string]: string } = {};
         users[userName] = password;

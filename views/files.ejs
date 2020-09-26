@@ -49,20 +49,21 @@
                     <% if(data[i].isDirectory) { %>
                     <span class="iconify" data-icon="ion:folder-open-outline" data-inline="false"></span>
                     <% } else{%>
-                    <span class="iconify" onclick="showTooltip('<%= data[i].documentId %>')" data-icon="gg:file-document" data-docId="<%= data[i].documentId %>"
-                        data-inline="false"></span>
+                    <span class="iconify" onclick="showTooltip('<%= data[i].documentId %>')"
+                        data-icon="gg:file-document" data-docId="<%= data[i].documentId %>" data-inline="false"></span>
                     <% } %>
                     &nbsp;
                     <a title=" <%= data[i].title %>"
                         href="<%= encodeURIComponent(data[i].id) %><% if(data[i].isDirectory) { %>/<% } %>">
                         <%= data[i].id %>
-                        </a>
+                    </a>
                 </h3>
+                <% if (data[i].size) { %>
                 <span>
-                    <% if (data[i].size) { %>
                     <%= prettyBytes(data[i].size)%>
-                    <% } %>
                 </span>
+                <% } %>
+
                 <time datetime="2006-01-02">
                     <% if (data[i].lastModified) { %>
                     <%= moment(data[i].lastModified).format('MMM-DD-YYYY')%>
@@ -105,7 +106,8 @@
             }
         }
 
-        var data = JSON.parse('<%- JSON.stringify(data) %>');
+        //var data = JSON.parse('<%- JSON.stringify(data) %>');
+        var data = <%- JSON.stringify(data) %>;
 
         function syntaxHighlight(json) {
             json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -127,7 +129,7 @@
         }
 
         function showTooltip(e) {
-            const model = data.filter(x=>x.documentId === e).pop();
+            const model = data.filter(x => x.documentId === e).pop();
             const modelStringify = JSON.stringify(model, undefined, 4);
             picoModal(`<pre class='json-snippet'>${syntaxHighlight(modelStringify)}</pre>`).show();
         }

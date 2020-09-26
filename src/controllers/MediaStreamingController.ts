@@ -2,7 +2,7 @@ import * as mongoose from 'mongoose';
 import { LinksCacheSchema } from '../models/mediaModel';
 import { Request, Response } from 'express';
 import { ContentStreamerService } from '../services/ContentStreamerService';
-
+import logger from "./../services/Logger";
 import stream from 'stream';
 import { promisify } from 'util';
 const pipeline = promisify(stream.pipeline);
@@ -21,11 +21,11 @@ export class MediaStreamingController {
                 res.writeHead(streamResult.status, streamResult.statusText, streamResult.headers);
                 await streamPipeline(streamResult.body, res);
             } else {
-                console.log(`Unable to resolve stream for ${documentId}. Responding with 404..`);
+                logger.warn(`Unable to resolve stream for ${documentId}. Responding with 404..`);
                 res.sendStatus(404);
             }
         } catch (error) {
-            console.log('an error occurred while streaming the media content.', error.message);
+            logger.error('an error occurred while streaming the media content.', error.message);
             if (!res.headersSent) {
                 res.status(500).send("Unknown error occurred");
             }
@@ -45,10 +45,10 @@ export class MediaStreamingController {
                 'Content-Type': linkInfo.contentType,
                 'Last-Modified': linkInfo.lastModified && linkInfo.lastModified.toGMTString()
             });
-            console.log(`HEAD DocId:${documentId}, ${linkInfo.size}, ${linkInfo.lastModified}, ${linkInfo.contentType}`);
+            logger.info(`HEAD DocId:${documentId}, ${linkInfo.size}, ${linkInfo.lastModified}, ${linkInfo.contentType}`);
             res.end();
         } else {
-            console.log(`HEAD DocId:${documentId}, NOT FOUND!`);
+            logger.warn(`HEAD DocId:${documentId}, NOT FOUND!`);
             res.sendStatus(404);
         }
     }

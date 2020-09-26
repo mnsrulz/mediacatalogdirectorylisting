@@ -26,7 +26,6 @@ export class MediaService {
     }
 
     public async fetchMediaByYear(mediaType: string, year: any): Promise<FileNode[]> {
-        console.log(`Year requested: ${year}`);
         async function listAllMoviesOfYear(year: any): Promise<FileNode[]> {
             var allMoviesGroupByYear: any[] = await MediaList.aggregate(
                 [

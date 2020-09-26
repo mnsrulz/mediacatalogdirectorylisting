@@ -3,6 +3,7 @@ import { DirectoryController } from "../controllers/DirectoryController";
 import { JobsController } from "../controllers/JobsController";
 import { MediaStreamingController } from "../controllers/MediaStreamingController";
 import express from "express";
+import logger from './../services/Logger';
 
 export class Routes {
 
@@ -25,7 +26,7 @@ export class Routes {
         app.route('/movie/:year/:medianame/refreshSources').post(this.jobController.refreshSources);
 
         function mw(req: Request, res: Response, next: NextFunction) {
-            console.log(`${req.method}, ${req.originalUrl}`);
+            logger.info(`${req.method} ${decodeURI(req.originalUrl)}`);
             if (req.originalUrl.endsWith('/')) {
                 res.setHeader('content-type', 'text/html');
                 next();

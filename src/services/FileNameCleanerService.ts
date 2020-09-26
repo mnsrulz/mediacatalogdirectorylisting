@@ -1,5 +1,6 @@
 import { FileNode } from "../models/fileNode";
 import fileNameParser, { filenameParse } from '@ctrl/video-filename-parser';
+import logger from "./Logger"; 
 
 import path from 'path';
 export class FileNameCleanerService {
@@ -40,7 +41,7 @@ export class FileNameCleanerService {
                 if (seasonNumber > 0 && episodeNumber > 0) {
                     mediaName = `${mediaName} - S${toTwoDigit(seasonNumber)}E${toTwoDigit(episodeNumber)}`;
                 } else {
-                    console.log(`Unable to parse TV Season and episode info:`, parsedFileName);
+                    logger.warn(`Unable to parse TV Season and episode info:`, parsedFileName);
                 }
 
                 cleanedTitle = `${mediaName} - ${x.documentId}${extensionOfTitle}`;
@@ -49,7 +50,7 @@ export class FileNameCleanerService {
                 // console.log(parsedFileName);
                 const seasonNumber = parsedFileName.seasons[0];
                 const episodeNumber = parsedFileName.episodeNumbers[0];
-                console.log(`${seasonNumber}:${episodeNumber}`);
+                // console.log(`${seasonNumber}:${episodeNumber}`);
                 if (extensionOfTitle)
                     cleanedTitle = x.title.replace(/(\.[\w\d_-]+)$/i, `-${x.documentId}$1`);
                 else
