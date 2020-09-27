@@ -28,7 +28,7 @@ export class Routes {
         app.route('/tv/:year').get(mw, this.directoryController.getTVShowsOfYear);
         app.route('/tv/:year/:medianame').get(mw, this.directoryController.getTVMediaSources);
 
-        app.route('/movie/:year/:medianame/refreshSources').post(this.jobController.refreshSources);
+        app.route(['/movie/:year/:medianame/refreshSources', '/tv/:year/:medianame/refreshSources']).post(this.jobController.refreshSources);
 
         app.route('/search').get(this.searchController.getIndex);
         app.route('/api/links').get(this.linkCacheController.getLinks);
