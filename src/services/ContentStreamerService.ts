@@ -32,7 +32,7 @@ export class ContentStreamerService {
                                             || parseInt(response.headers.get('content-length') || '0');
                 if (potentialContentLength) {
                     if (playableLinkContentLength === potentialContentLength) {
-                        logger.info(`content length ${playableLinkContentLength} matches up.. piping response with total content length ${response.headers.get('content-length')}`);
+                        logger.info(`GET ${documentId} ${headersForInboundRequest['range']} - content length ${playableLinkContentLength} matches up.. piping response with total content length ${response.headers.get('content-length')}`);
                         const headersForStreamingRequest: Record<string, string> = {};
                         response.headers.forEach((_headerValue, _headerName) => {
                             headerNamesToPipe.includes(_headerName) && (headersForStreamingRequest[_headerName] = _headerValue);
@@ -50,10 +50,10 @@ export class ContentStreamerService {
                     logger.warn(`Unable to detect content length.`);
                 }
             } else {
-                logger.warn(`Unexpected response code ${response.status} received while acquiring the media content stream.`);
+                logger.warn(`GET ${documentId} ${headersForInboundRequest['range']} - Unexpected response code ${response.status} received while acquiring the media content stream.`);
             }
         } catch (error) {
-            logger.error('An unknown error occurred while acquiring the media content stream...');
+            logger.error(`GET ${documentId} ${headersForInboundRequest['range']} - An unknown error occurred while acquiring the media content stream...`);
         }
 
         const lastUpdatedDate: number = linkInfo.lastUpdated;
