@@ -47,7 +47,10 @@ export class DirectoryController {
         const year: string = req.params.year;
         const normalizedMediaName = medianame.substr(0, medianame.lastIndexOf("-")).trim();
         const imdbId = medianame.substr(medianame.lastIndexOf("-") + 1).trim();
-        const allCacheLinksForGivenImdbId = await mediaSourceService.listMediaSources(imdbId);
+
+        const defaultOnly = req.get('X-DEFAULT-ONLY')?.toString() === '1';  //special header to club files. Used in rclone http header setting so, we don't have to display all the sources
+        const allCacheLinksForGivenImdbId = await mediaSourceService.listMediaSources(imdbId, defaultOnly);
+
         isMovie ?
             fileNameCleanerService.CleanMovieTitle(allCacheLinksForGivenImdbId, normalizedMediaName, year) :
             fileNameCleanerService.CleanTvTitle(allCacheLinksForGivenImdbId, normalizedMediaName, year);

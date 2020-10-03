@@ -14,12 +14,24 @@ const contentStreamerService = new ContentStreamerService();
 export class MediaStreamingController {
     public async getMediaContent(req: Request, res: Response) {
         try {
-            const medianame: string = req.params.filename || "";
-            const documentId = medianame.substr(medianame.lastIndexOf("-") + 1).trim().split('.')[0];
-            const streamResult = await contentStreamerService.stream(documentId, req.headers['range']);
+            const filename: string = req.params.filename || "";
+            const documentId = filename.substr(filename.lastIndexOf("-") + 1).trim().split('.')[0];
+
+            let streamResult;
+            if (documentId.startsWith('S')) {
+                const medianame: string = req.params.medianame || "";
+                const imdbId = medianame.substr(medianame.lastIndexOf("-") + 1).trim();
+
+                const size = parseInt(documentId.substr(1), 32);
+                streamResult = await contentStreamerService.streamBySize(imdbId, size, req.headers['range']);
+            } else {
+                streamResult = await contentStreamerService.stream(documentId, req.headers['range']);
+            }
+
             if (streamResult) {
                 res.writeHead(streamResult.status, streamResult.statusText, streamResult.headers);
                 await streamPipeline(streamResult.body, res);
+                logger.info(`Streaming completed for ${documentId}`);
             } else {
                 logger.warn(`Unable to resolve stream for ${documentId}. Responding with 404..`);
                 res.sendStatus(404);
@@ -33,10 +45,22 @@ export class MediaStreamingController {
     }
 
     public async getMediaContentHead(req: Request, res: Response) {
-        const medianame: string = req.params.filename || "";
-        const documentId = medianame.substr(medianame.lastIndexOf("-") + 1).trim().split('.')[0];
-        const linkInfo: any = await LinksCacheList.findById(documentId);
+        const medianame: string = req.params.medianame || "";
+        const filename: string = req.params.filename || "";
+        const imdbId = medianame.substr(medianame.lastIndexOf("-") + 1).trim();
 
+        const documentId = filename.substr(filename.lastIndexOf("-") + 1).trim().split('.')[0];
+        let linkInfo: any
+        if (documentId.startsWith('S')) {
+            const size = parseInt(documentId.substr(1), 32);
+            linkInfo = await LinksCacheList.findOne({
+                size,
+                imdbId,
+                status: 'Valid'
+            });
+        } else {
+            linkInfo = await LinksCacheList.findById(documentId);
+        }
         if (linkInfo && linkInfo.status === 'Valid') {
             res.writeHead(200, {
                 'Accept-Ranges': 'bytes',

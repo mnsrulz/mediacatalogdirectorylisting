@@ -41,6 +41,7 @@ export const LinksCacheSchema = new Schema({
     size: Number,
     contentType: String,
     headers: {},
+    isDefault: Boolean,
     lastModified: Date   //this represents the last modification date of the file from metadata of the network file
 }, { collection: 'links_cache' });
 

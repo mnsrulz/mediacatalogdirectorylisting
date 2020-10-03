@@ -6,18 +6,32 @@ import { ResolvedMediaItem } from 'nurlresolver/dist/BaseResolver';
 import logger from "./../services/Logger";
 const LinksCacheList = mongoose.model('LinksCache', LinksCacheSchema);
 const MediaList = mongoose.model('MediaCatalog', MediaSchema);
-const refreshLinkTimeout = (1000 * 24 * 60 * 60);
+const refreshLinkTimeout = (1000 * 24 * 7 * 60 * 60); //7 Days of refreshness
 
 export class MediaSourceService {
 
-    public async listMediaSources(imdbId: string): Promise<FileNode[]> {
-        var allCacheLinksForGivenImdbId: any[] = await LinksCacheList.find({ imdbId: imdbId, status: 'Valid' });
+    public async listMediaSources(imdbId: string, defaultOnly: boolean = false): Promise<FileNode[]> {
+        var allCacheLinksForGivenImdbId: any[] = await LinksCacheList.find({ imdbId: imdbId });
 
         if (allCacheLinksForGivenImdbId.length === 0
             || allCacheLinksForGivenImdbId.some(x => x.lastUpdated < Date.now() - refreshLinkTimeout)) {
             logger.info('Refreshing the source for current imdbid');
             await this.refreshSources(imdbId);
-            allCacheLinksForGivenImdbId = await LinksCacheList.find({ imdbId: imdbId, status: 'Valid' });
+            allCacheLinksForGivenImdbId = await LinksCacheList.find({ imdbId: imdbId });
+        }
+
+        if (defaultOnly) {
+            const _tempMapper: Record<number, boolean> = {};
+            allCacheLinksForGivenImdbId = allCacheLinksForGivenImdbId.filter(x => x.size && x.size > 1 * 1024 * 1024 && x.status === 'Valid').map(x => {
+                if (_tempMapper[x.size]) {
+                    return null;
+                } else {
+                    _tempMapper[x.size] = true;
+                    return x;
+                }
+            }).filter(x => x);
+        } else {
+            allCacheLinksForGivenImdbId = allCacheLinksForGivenImdbId.filter(x => x.status === 'Valid');
         }
 
         const result: FileNode[] = allCacheLinksForGivenImdbId.map(x => {
@@ -27,7 +41,7 @@ export class MediaSourceService {
                 isDirectory: false,
                 size: x.size,
                 lastModified: x.lastModified,
-                documentId: x._id,
+                documentId: defaultOnly ? `S${x.size.toString(32)}` : x._id,
                 headers: x.headers,
                 imdbId: x.imdbId,
                 lastUpdated: x.lastUpdated,
@@ -67,17 +81,19 @@ export class MediaSourceService {
             }
 
             var persistencePromise = LinksCacheList.updateMany({ imdbId: imdbId, parentLink: x.parent }, {
-                title: x.title,
-                imdbId: imdbId,
                 playableLink: x.link,
-                isPlayable: x.isPlayable,
-                parentLink: x.parent,
                 lastUpdated: Date.now(),
                 status: 'Valid',
-                size: size,
-                lastModified: lastModified,
-                contentType: x.contentType,
-                headers: x.headers
+                headers: x.headers,
+                $setOnInsert: {
+                    title: x.title,
+                    imdbId: imdbId,
+                    size: size,
+                    parentLink: x.parent,
+                    isPlayable: x.isPlayable,
+                    contentType: x.contentType,
+                    lastModified: lastModified  //We don't want to update the size and lastmodified in case the doucment already exists. To avoid any failure from the providers where they reuse the old id's.
+                }
             }, { upsert: true, setDefaultsOnInsert: true });
             allPromiseForPersistence.push(persistencePromise);
         });
@@ -100,15 +116,17 @@ export class MediaSourceService {
                 lastModified = new Date(x.lastModified);
             }
             const documentToPersist = {
-                title: x.title,
+                $setOnInsert: {
+                    size: size,
+                    lastModified: lastModified,
+                    contentType: x.contentType,
+                    parentLink: x.parent,
+                    isPlayable: x.isPlayable,
+                    title: x.title,
+                },
                 playableLink: x.link,
-                isPlayable: x.isPlayable,
-                parentLink: x.parent,
                 lastUpdated: Date.now(),
                 status: 'Valid',
-                size: size,
-                lastModified: lastModified,
-                contentType: x.contentType,
                 headers: x.headers
             };
             logger.info(`Document ${documentId} source refreshed.`, documentToPersist);
@@ -127,4 +145,22 @@ export class MediaSourceService {
             status: 'Dead'
         });
     }
+
+    public async MarkDocumentAsDefault(documentId: string, imdbId: string, seasonNumber?: number, episodeNumber?: number) {
+        if (seasonNumber || episodeNumber) {
+            //follow tv route
+        } else {
+            //follow movie route
+            // await LinksCacheList.updateMany({ imdbId: imdbId, isDefault: true }, {
+            //     isDefault: false
+            // });
+            logger.info(`Marking default document as ${documentId} for imdbId: ${imdbId}`);
+            await LinksCacheList.updateOne({ _id: documentId, imdbId: imdbId }, {
+                lastUpdated: Date.now(),
+                isDefault: true
+            });
+        }
+    }
+
+
 }
