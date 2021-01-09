@@ -4,6 +4,7 @@ import nurlresolver from 'nurlresolver';
 import { FileNode } from "../models/fileNode";
 import { ResolvedMediaItem } from 'nurlresolver/dist/BaseResolver';
 import logger from "./../services/Logger";
+import { type } from 'os';
 const LinksCacheList = mongoose.model('LinksCache', LinksCacheSchema);
 const MediaList = mongoose.model('MediaCatalog', MediaSchema);
 const refreshLinkTimeout = (1000 * 24 * 7 * 60 * 60); //7 Days of refreshness
@@ -73,13 +74,17 @@ export class MediaSourceService {
         var allPromiseForPersistence: any[] = [];
         allResolvedLinks.forEach(x => {
             //should not be updatemany but noticed in the past that there exists multiple due to some concurrency issues.
-            const size = x.size && parseInt(x.size);
+            let size = 0;
             let lastModified = null;
 
             if (x.lastModified) {
                 lastModified = new Date(x.lastModified);
             }
-
+            if (x.size && parseInt(x.size) !== NaN) {
+                size = parseInt(x.size);
+            } else {
+                logger.warn(`Size undetected for imdbid ${imdbId}, parentLink ${x.parent}`);
+            }
             var persistencePromise = LinksCacheList.updateMany({ imdbId: imdbId, parentLink: x.parent }, {
                 playableLink: x.link,
                 lastUpdated: Date.now(),
@@ -115,15 +120,11 @@ export class MediaSourceService {
             if (x.lastModified) {
                 lastModified = new Date(x.lastModified);
             }
+
             const documentToPersist = {
-                $setOnInsert: {
-                    size: size,
-                    lastModified: lastModified,
-                    contentType: x.contentType,
-                    parentLink: x.parent,
-                    isPlayable: x.isPlayable,
-                    title: x.title,
-                },
+                lastModified: linkInfo.lastModified || lastModified,
+                contentType: linkInfo.contentType || x.contentType,
+                size: linkInfo.size || size,
                 playableLink: x.link,
                 lastUpdated: Date.now(),
                 status: 'Valid',

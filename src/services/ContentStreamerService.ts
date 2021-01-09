@@ -39,7 +39,7 @@ export class ContentStreamerService {
         const linkToPlay = linkInfo.playableLink;
         const playableLinkContentLength = parseInt(linkInfo.size);
         const headersForInboundRequest: Record<string, string> = linkInfo.headers || {};
-        headersForInboundRequest['range'] = rangeHeader || 'bytes=0-';
+        rangeHeader && (headersForInboundRequest['range'] = rangeHeader);// || 'bytes=0-';
         linkInfo.parentLink && (headersForInboundRequest['Referer'] = linkInfo.parentLink);
         headersForInboundRequest['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0';
 
