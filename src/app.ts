@@ -10,11 +10,11 @@ class App {
     public app: express.Application = express();
     public routePrv: Routes = new Routes();
     public mongoUrl: string = process.env.MONGODB_URI || '';
-    
+
     constructor() {
         this.config();
         this.authSetup();
-        this.mongoSetup();        
+        this.mongoSetup();
         this.routePrv.routes(this.app);
     }
 
@@ -39,11 +39,20 @@ class App {
         let users: { [username: string]: string } = {};
         users[userName] = password;
 
-        this.app.use(basicAuth({
-            users: users,
-            challenge: true,
-            realm: realm,
-        }));
+        this.app.use(function (req, res, next) {
+            //good way to provide anonymous access to fewer routes            
+            if ('/api/zip/listFiles' === req.path) {
+                next();
+            }
+            else {
+                basicAuth({
+                    users: users,
+                    challenge: true,
+                    realm: realm,
+                })(req, res, next);
+                //next();
+            }
+        });
 
     }
 

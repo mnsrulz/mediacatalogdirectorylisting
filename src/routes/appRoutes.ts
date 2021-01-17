@@ -6,6 +6,8 @@ import { LinkCacheController } from '../controllers/LinkCacheController';
 import { SearchController } from '../controllers/SearchController';
 import express from "express";
 import logger from './../services/Logger';
+import { GoogleDriveUploadController } from "../controllers/GoogleDriveUploadController";
+import { ZipFileController } from "../controllers/ZipFileController";
 
 export class Routes {
 
@@ -14,7 +16,8 @@ export class Routes {
     public mediaStreamingController = new MediaStreamingController();
     public linkCacheController = new LinkCacheController();
     public searchController = new SearchController();
-
+    public gdUploadController = new GoogleDriveUploadController();
+    public zipFileController = new ZipFileController();
 
     public routes(app: express.Application): void {
         app.route('/').get(mw, this.directoryController.getRoot);
@@ -37,6 +40,8 @@ export class Routes {
         app.route('/search').get(this.searchController.getIndex);
         app.route('/api/links').get(this.linkCacheController.getLinks);
         app.route('/api/links/refresh/:documentId').post(this.linkCacheController.refresh);
+
+        app.route('/api/zip/listfiles').get(this.zipFileController.listFiles);
 
         function mw(req: Request, res: Response, next: NextFunction) {
             logger.info(`${req.method} ${decodeURI(req.originalUrl)}`);

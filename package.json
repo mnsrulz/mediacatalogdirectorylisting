@@ -20,7 +20,9 @@
     "@types/mongodb": "^3.5.27",
     "@types/mongoose": "^5.7.36",
     "@types/node": "^14.0.14",
+    "@types/request": "^2.48.5",
     "@types/superagent": "^4.1.10",
+    "@types/unzipper": "^0.10.3",
     "nodemon": "^2.0.4",
     "ts-node": "^8.10.2",
     "tsc-watch": "^4.2.9",
@@ -34,12 +36,16 @@
     "ejs": "^3.1.3",
     "express": "^4.17.1",
     "express-basic-auth": "^1.2.0",
+    "googleapis": "^67.0.0",
     "lodash-es": "^4.17.15",
     "moment": "^2.27.0",
     "mongodb": "^3.5.9",
     "mongoose": "^5.9.20",
     "node-fetch": "^3.0.0-beta.9",
     "nurlresolver": "^1.11.3",
-    "pretty-bytes": "^5.4.1"
+    "pretty-bytes": "^5.4.1",
+    "request": "^2.88.2",
+    "uniqid": "^5.2.0",
+    "unzipper": "^0.10.11"
   }
 }
