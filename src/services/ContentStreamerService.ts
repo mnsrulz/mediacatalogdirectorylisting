@@ -53,7 +53,7 @@ export class ContentStreamerService {
                     || parseInt(response.headers.get('content-length') || '0');
                 if (potentialContentLength) {
                     if (playableLinkContentLength === potentialContentLength) {
-                        logger.info(`GET ${documentId} ${headersForInboundRequest['range']} - content length ${playableLinkContentLength} matches up.. piping response with total content length ${response.headers.get('content-length')}`);
+                        logger.info(`GET ${documentId} ${headersForInboundRequest['range']}, CL ${playableLinkContentLength} matches up.. piping CL ${response.headers.get('content-length')}`);
                         const headersForStreamingRequest: Record<string, string> = {};
                         response.headers.forEach((_headerValue, _headerName) => {
                             headerNamesToPipe.includes(_headerName) && (headersForStreamingRequest[_headerName] = _headerValue);
@@ -65,7 +65,7 @@ export class ContentStreamerService {
                             statusText: response.statusText
                         }
                     } else {
-                        logger.warn(`GET ${documentId} ${headersForInboundRequest['range']} - MISMATCH found in playableLinkContentLength (${playableLinkContentLength}) and potentialContentLength (${potentialContentLength})`);
+                        logger.warn(`GET ${documentId} ${headersForInboundRequest['range']} - MISMATCH found in playableLinkCL (${playableLinkContentLength}) & potentialCL (${potentialContentLength})`);
                     }
                 } else {
                     logger.warn(`GET ${documentId} ${headersForInboundRequest['range']} - Unable to detect content length.`);
