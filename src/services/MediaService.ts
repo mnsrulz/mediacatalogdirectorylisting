@@ -1,7 +1,7 @@
 import * as mongoose from 'mongoose';
 import { MediaSchema, LinksCacheSchema } from '../models/mediaModel';
 import { FileNode } from '../models/fileNode';
-
+import { getItems } from './mediaCatalogApiClient';
 const MediaList = mongoose.model('MediaCatalog', MediaSchema);
 
 export class MediaService {
@@ -30,7 +30,7 @@ export class MediaService {
             var allMoviesGroupByYear: any[] = await MediaList.aggregate(
                 [
                     { "$match": { "imdbInfo.year": `${year}`, "tmdbInfo.media": mediaType } },    //List only movies
-                    { "$group": { _id: "$imdbInfo.id", title: { $max: "$tmdbInfo.title" }, lastModified: {$max:"$media_document.modifiedTime"} } },
+                    { "$group": { _id: "$imdbInfo.id", title: { $max: "$tmdbInfo.title" }, lastModified: { $max: "$media_document.modifiedTime" } } },
                     { $sort: { title: 1 } },
                 ],
             );
@@ -52,7 +52,28 @@ export class MediaService {
         return result;
     }
 
+    public async fetchMediaByYearNetlify(mediaType: 'movie' | 'tv', year: any): Promise<FileNode[]> {
+        async function listAllMoviesOfYear(year: any): Promise<FileNode[]> {
+            const items = await getItems(mediaType, year);
+            return items.sort((a, b) => a.title.localeCompare(b.title)).map((x) => {
+                //const title = decodeURI(encodeURI(x.title).replace("%C2%A0", "%20"));   //may be some conversion needed
+                const f: FileNode = {
+                    id: `${x.title}-${x.imdbId}`,
+                    parent: x.id,
+                    //lastModified: x.lastModified,
+                    title: x.title,
+                    isDirectory: true,
+                    size: 0,
+                };
+                return f;
+            });
+        }
+        const result: FileNode[] = await listAllMoviesOfYear(year);
+        return result;
+    }
+
     public async fetchYearsByMediaType(): Promise<FileNode[]> {
+        //can simplify by just returning last 50 years as array
         async function listYears(): Promise<FileNode[]> {
             var allMoviesGroupByYear: any[] = await MediaList.aggregate([
                 {

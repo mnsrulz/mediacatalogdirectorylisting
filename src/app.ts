@@ -4,12 +4,13 @@ import { Routes } from "./routes/appRoutes";
 import mongoose from "mongoose";
 import basicAuth from 'express-basic-auth';
 import cors from 'cors';
+import configs from './config';
 
 class App {
 
     public app: express.Application = express();
     public routePrv: Routes = new Routes();
-    public mongoUrl: string = process.env.MONGODB_URI || '';
+    public mongoUrl: string = configs.mongoUri;
 
     constructor() {
         this.config();

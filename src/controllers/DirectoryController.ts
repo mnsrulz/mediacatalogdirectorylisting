@@ -23,13 +23,13 @@ export class DirectoryController {
     }
 
     public async getMoviesOfYear(req: Request, res: Response) {
-        const mediaByYear = await mediaService.fetchMediaByYear('Movie', req.params.year);
+        const mediaByYear = await mediaService.fetchMediaByYearNetlify('movie', req.params.year);
         const result = await DirectoryController.GetRenderData(req.url, mediaByYear);
         res.end(result);
     }
 
     public async getTVShowsOfYear(req: Request, res: Response) {
-        const mediaByYear = await mediaService.fetchMediaByYear('TV', req.params.year);
+        const mediaByYear = await mediaService.fetchMediaByYearNetlify('tv', req.params.year);
         const result = await DirectoryController.GetRenderData(req.url, mediaByYear);
         res.end(result);
     }

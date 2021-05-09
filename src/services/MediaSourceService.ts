@@ -5,6 +5,7 @@ import { FileNode } from "../models/fileNode";
 import { ResolvedMediaItem } from 'nurlresolver/dist/BaseResolver';
 import logger from "./../services/Logger";
 import { type } from 'os';
+import { getMediaSources } from './mediaCatalogApiClient';
 const LinksCacheList = mongoose.model('LinksCache', LinksCacheSchema);
 const MediaList = mongoose.model('MediaCatalog', MediaSchema);
 const refreshLinkTimeout = (1000 * 24 * 7 * 60 * 60); //7 Days of refreshness
@@ -57,17 +58,20 @@ export class MediaSourceService {
     public async refreshSources(imdbId: string) {
         logger.info(`fetching media from url for imdbid: ${imdbId}`);
         await LinksCacheList.updateMany({ imdbId: imdbId }, { status: 'Refreshing', lastUpdated: Date.now() });
-        var webLinks = await MediaList.find({ 'imdbInfo.id': imdbId });
+
+        //var webLinks = await MediaList.find({ 'imdbInfo.id': imdbId });   
+        const webLinks = await getMediaSources(imdbId); //use the new api service
+
         var allPromiseForRefreshSources: any[] = [];
-        webLinks.forEach((w: any) => {
+        webLinks.forEach(w => {
             allPromiseForRefreshSources.push(this.fetchLinksAndPerformSave(imdbId, w));
         });
         await Promise.all(allPromiseForRefreshSources);
         await LinksCacheList.updateMany({ imdbId: imdbId, status: 'Refreshing' }, { status: 'Dead', lastUpdated: Date.now() });
     }
 
-    public async fetchLinksAndPerformSave(imdbId: string, w: any) {
-        var allResolvedLinks = await nurlresolver.resolveRecursive(w.media_document.webViewLink, {
+    public async fetchLinksAndPerformSave(imdbId: string, w: { webViewLink: string }) {        
+        var allResolvedLinks = await nurlresolver.resolveRecursive(w.webViewLink, {
             timeout: 30,
             extractMetaInformation: true
         });
