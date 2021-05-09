@@ -2,6 +2,8 @@ import * as mongoose from 'mongoose';
 import { MediaSchema, LinksCacheSchema } from '../models/mediaModel';
 import { FileNode } from '../models/fileNode';
 import { getItems } from './mediaCatalogApiClient';
+import logger from "./Logger";
+
 const MediaList = mongoose.model('MediaCatalog', MediaSchema);
 
 export class MediaService {
@@ -55,7 +57,12 @@ export class MediaService {
     public async fetchMediaByYearNetlify(mediaType: 'movie' | 'tv', year: any): Promise<FileNode[]> {
         async function listAllMoviesOfYear(year: any): Promise<FileNode[]> {
             const items = await getItems(mediaType, year);
-            return items.sort((a, b) => a.title.localeCompare(b.title)).map((x) => {
+            items.filter(x => !x.imdbId).forEach(x => {
+                logger.warn(`item with title: "${x.title}" does not have an imdb attached to it. Skipping...`);
+            });
+
+            //clean up any items which doesn't have an imdbid
+            return items.filter(x => x.imdbId).sort((a, b) => a.title.localeCompare(b.title)).map((x) => {
                 //const title = decodeURI(encodeURI(x.title).replace("%C2%A0", "%20"));   //may be some conversion needed
                 const f: FileNode = {
                     id: `${x.title}-${x.imdbId}`,
