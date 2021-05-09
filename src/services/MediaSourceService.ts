@@ -94,14 +94,14 @@ export class MediaSourceService {
                 lastUpdated: Date.now(),
                 status: 'Valid',
                 headers: x.headers,
+                contentType: x.contentType,                    
+                size: size,                    
+                lastModified: lastModified,  //CHANGED--We don't want to update the size and lastmodified in case the doucment already exists. To avoid any failure from the providers where they reuse the old id's.
                 $setOnInsert: {
                     title: x.title,
                     imdbId: imdbId,
-                    size: size,
                     parentLink: x.parent,
-                    isPlayable: x.isPlayable,
-                    contentType: x.contentType,
-                    lastModified: lastModified  //We don't want to update the size and lastmodified in case the doucment already exists. To avoid any failure from the providers where they reuse the old id's.
+                    isPlayable: x.isPlayable,                    
                 }
             }, { upsert: true, setDefaultsOnInsert: true });
             allPromiseForPersistence.push(persistencePromise);
