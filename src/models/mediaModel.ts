@@ -42,6 +42,7 @@ export const LinksCacheSchema = new Schema({
     contentType: String,
     headers: {},
     isDefault: Boolean,
+    speedRank: Number,  //this represents the speed ranking. higher speedrank means higher download speed.
     lastModified: Date   //this represents the last modification date of the file from metadata of the network file
 }, { collection: 'links_cache' });
 

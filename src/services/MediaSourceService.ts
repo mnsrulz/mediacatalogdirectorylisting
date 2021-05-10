@@ -4,7 +4,6 @@ import nurlresolver from 'nurlresolver';
 import { FileNode } from "../models/fileNode";
 import { ResolvedMediaItem } from 'nurlresolver/dist/BaseResolver';
 import logger from "./../services/Logger";
-import { type } from 'os';
 import { getMediaSources } from './mediaCatalogApiClient';
 const LinksCacheList = mongoose.model('LinksCache', LinksCacheSchema);
 const MediaList = mongoose.model('MediaCatalog', MediaSchema);
@@ -49,7 +48,8 @@ export class MediaSourceService {
                 lastUpdated: x.lastUpdated,
                 status: x.status,
                 ts: x.ts,
-                playableLink: x.playableLink
+                playableLink: x.playableLink,
+                speedRank: x.speedRank
             } as FileNode
         });
         return result;
@@ -70,7 +70,7 @@ export class MediaSourceService {
         await LinksCacheList.updateMany({ imdbId: imdbId, status: 'Refreshing' }, { status: 'Dead', lastUpdated: Date.now() });
     }
 
-    public async fetchLinksAndPerformSave(imdbId: string, w: { webViewLink: string }) {        
+    public async fetchLinksAndPerformSave(imdbId: string, w: { webViewLink: string }) {
         var allResolvedLinks = await nurlresolver.resolveRecursive(w.webViewLink, {
             timeout: 30,
             extractMetaInformation: true
@@ -94,14 +94,15 @@ export class MediaSourceService {
                 lastUpdated: Date.now(),
                 status: 'Valid',
                 headers: x.headers,
-                contentType: x.contentType,                    
-                size: size,                    
+                contentType: x.contentType,
+                size: size,
+                speedRank: x.speedRank,
                 lastModified: lastModified,  //CHANGED--We don't want to update the size and lastmodified in case the doucment already exists. To avoid any failure from the providers where they reuse the old id's.
                 $setOnInsert: {
                     title: x.title,
                     imdbId: imdbId,
                     parentLink: x.parent,
-                    isPlayable: x.isPlayable,                    
+                    isPlayable: x.isPlayable,
                 }
             }, { upsert: true, setDefaultsOnInsert: true });
             allPromiseForPersistence.push(persistencePromise);
@@ -132,7 +133,8 @@ export class MediaSourceService {
                 playableLink: x.link,
                 lastUpdated: Date.now(),
                 status: 'Valid',
-                headers: x.headers
+                headers: x.headers,
+                speedRank: x.speedRank
             };
             logger.info(`Document ${documentId} source refreshed.`, documentToPersist);
             await LinksCacheList.updateOne({ _id: documentId }, documentToPersist);
@@ -166,6 +168,4 @@ export class MediaSourceService {
             });
         }
     }
-
-
 }

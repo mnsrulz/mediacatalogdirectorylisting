@@ -6,21 +6,18 @@ import logger from "./Logger";
 
 const headerNamesToPipe = ['content-length', 'content-range', 'content-type', 'range', 'last-modified', 'content-disposition', 'accept-ranges'];
 import { MediaSourceService } from './MediaSourceService';
+import { LinksCacheService } from './LinksCacheService';
 import moment from "moment";
 const mediaSourceService = new MediaSourceService();
+const linksCacheService = new LinksCacheService();
 const maxRetryCount = 3;
 export class ContentStreamerService {
 
     async streamBySize(imdbId: string, size: number, rangeHeader?: string): Promise<MyStreamResponse | null> {
-        const potentialLinks = await LinksCacheList.find({
-            size: size,
-            imdbId: imdbId,
-            status: 'Valid'
-        });
-
+        const potentialLinks = await linksCacheService.ListValidLinksFromCache(imdbId, size);
+        logger.info(`Found ${potentialLinks.length} links (${fetchHostName(potentialLinks.map(x => x.parentLink))}) for imdbId: ${imdbId} with size: ${size}`);
         for (const potentialLink of potentialLinks) {
-            //build a logic to determine the fastest stream rather than the first stream.
-            const documentId = potentialLink._id;
+            const documentId = potentialLink.id;
             const stream = await this._stream(documentId, rangeHeader);
             if (stream) {
                 return stream;
@@ -41,7 +38,7 @@ export class ContentStreamerService {
         const headersForInboundRequest: Record<string, string> = linkInfo.headers || {};
         rangeHeader && (headersForInboundRequest['range'] = rangeHeader);// || 'bytes=0-';
         linkInfo.parentLink && (headersForInboundRequest['Referer'] = linkInfo.parentLink);
-        headersForInboundRequest['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0';
+        headersForInboundRequest['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0';
 
         try {
             const response = await fetch(linkToPlay, {
@@ -87,6 +84,10 @@ export class ContentStreamerService {
         await mediaSourceService.Refresh(documentId);
         return await this._stream(documentId, rangeHeader, retryCount);
     }
+}
+
+const fetchHostName = (s: string[]) => {
+    return s.map(AppUtils.parseHostName).join(',');
 }
 
 export interface MyStreamResponse {

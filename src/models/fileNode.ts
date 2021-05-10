@@ -13,6 +13,7 @@ export interface FileNode {
     ts?: Date;
     headers?: Object;
     playableLink?: string;
+    speedRank?: number;
 }
 
 
