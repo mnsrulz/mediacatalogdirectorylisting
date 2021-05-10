@@ -72,7 +72,7 @@ export class MediaSourceService {
 
     public async fetchLinksAndPerformSave(imdbId: string, w: { webViewLink: string }) {
         var allResolvedLinks = await nurlresolver.resolveRecursive(w.webViewLink, {
-            timeout: 30,
+            timeout: 25,
             extractMetaInformation: true
         });
         var allPromiseForPersistence: any[] = [];
