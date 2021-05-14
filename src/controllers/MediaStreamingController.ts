@@ -6,7 +6,6 @@ import logger from "./../services/Logger";
 import stream from 'stream';
 import { promisify } from 'util';
 const pipeline = promisify(stream.pipeline);
-const streamPipeline = promisify(pipeline);
 
 const LinksCacheList = mongoose.model('LinksCache', LinksCacheSchema);
 const contentStreamerService = new ContentStreamerService();
@@ -30,7 +29,7 @@ export class MediaStreamingController {
 
             if (streamResult) {
                 res.writeHead(streamResult.status, streamResult.statusText, streamResult.headers);
-                await streamPipeline(streamResult.body, res);
+                await pipeline(streamResult.body, res);
                 logger.info(`Streaming completed for ${documentId}`);
             } else {
                 logger.warn(`Unable to resolve stream for ${documentId}. Responding with 404..`);
