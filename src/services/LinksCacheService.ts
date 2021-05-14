@@ -8,7 +8,7 @@ export class LinksCacheService {
         const linkInfo = await LinksCacheList.findById(documentId);
     }
 
-    public async ListValidLinksFromCache(imdbId: string, size: number) {
+    public async ListValidLinksFromCache(imdbId: string, size: number): Promise<MediaSource[]> {
         const potentialLinks = await LinksCacheList.find({
             size: size,
             imdbId: imdbId,
