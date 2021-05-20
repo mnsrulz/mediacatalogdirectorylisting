@@ -11,7 +11,7 @@ const refreshLinkTimeout = (1000 * 24 * 7 * 60 * 60); //7 Days of refreshness
 
 export class MediaSourceService {
 
-    public async listMediaSources(imdbId: string, defaultOnly: boolean = false): Promise<FileNode[]> {
+    public async listMediaSources(imdbId: string, isMovie: boolean, defaultOnly: boolean = false): Promise<FileNode[]> {
         var allCacheLinksForGivenImdbId: any[] = await LinksCacheList.find({ imdbId: imdbId });
 
         if (allCacheLinksForGivenImdbId.length === 0
@@ -31,6 +31,16 @@ export class MediaSourceService {
                     return x;
                 }
             }).filter(x => x);
+            //lets use the default item for movie only. Cause tv items may have multiple items.
+            if (isMovie && allCacheLinksForGivenImdbId.length > 0) {
+                const theDefaultItem = allCacheLinksForGivenImdbId.find(x => x.isDefault);
+                if (theDefaultItem) {
+                    allCacheLinksForGivenImdbId = [theDefaultItem];
+                } else {
+                    allCacheLinksForGivenImdbId.sort((a, b) => b.size - a.size);    //max size first
+                    allCacheLinksForGivenImdbId = [allCacheLinksForGivenImdbId[0]];
+                }
+            }
         } else {
             allCacheLinksForGivenImdbId = allCacheLinksForGivenImdbId.filter(x => x.status === 'Valid');
         }
