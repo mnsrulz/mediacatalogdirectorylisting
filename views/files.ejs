@@ -32,7 +32,7 @@
             </ol>
         </nav>
         <% if(options) { %>
-        <input type="button" id='refreshSources' onclick="refreshSources()" class="action-button"
+        <input type="button" id='refreshSources' onclick="refreshSources('<%=options.imdbId%>')" class="action-button"
             value="Refresh Sources" />
         <% }%>
     </header>
@@ -81,11 +81,11 @@
         </span>
     </footer>
     <script>
-        async function refreshSources() {
+        async function refreshSources(imdbId) {
             try {
                 document.querySelector('#refreshSources').value = 'Refreshing...';
                 document.querySelector('#refreshSources').disabled = true;
-                const response = await fetch('refreshSources', {
+                const response = await fetch(`/api/${imdbId}/refreshSources`, {
                     method: 'POST', // *GET, POST, PUT, DELETE, etc.
                     // mode: 'cors', // no-cors, *cors, same-origin
                     // cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached

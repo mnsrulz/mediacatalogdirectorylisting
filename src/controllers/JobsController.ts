@@ -5,9 +5,8 @@ const mediaSourceService = new MediaSourceService();
 export class JobsController {
 
     public async refreshSources(req: Request, res: Response) {
-        const medianame: string = req.params.medianame || "";
-        const imdbId = medianame.substr(medianame.lastIndexOf("-") + 1).trim();
-        await mediaSourceService.refreshSources(imdbId);
+        const { imdbid } = req.params;
+        await mediaSourceService.refreshSources(imdbid);
         res.send({
             'acknowledged': true
         });

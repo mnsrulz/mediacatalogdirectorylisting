@@ -13,16 +13,13 @@ const contentStreamerService = new ContentStreamerService();
 export class MediaStreamingController {
     public async getMediaContent(req: Request, res: Response) {
         try {
-            const filename: string = req.params.filename || "";
+            const { filename, imdbid, medianame } = req.params;
             const documentId = filename.substr(filename.lastIndexOf("-") + 1).trim().split('.')[0];
 
             let streamResult;
             if (documentId.startsWith('S')) {
-                const medianame: string = req.params.medianame || "";
-                const imdbId = medianame.substr(medianame.lastIndexOf("-") + 1).trim();
-
                 const size = parseInt(documentId.substr(1), 32);
-                streamResult = await contentStreamerService.streamBySize(imdbId, size, req.headers['range']);
+                streamResult = await contentStreamerService.streamBySize(imdbid, size, req.headers['range']);
             } else {
                 streamResult = await contentStreamerService.stream(documentId, req.headers['range']);
             }
@@ -44,10 +41,9 @@ export class MediaStreamingController {
     }
 
     public async getMediaContentHead(req: Request, res: Response) {
-        const medianame: string = req.params.medianame || "";
+        const { imdbid } = req.params;
         const filename: string = req.params.filename || "";
-        const imdbId = medianame.substr(medianame.lastIndexOf("-") + 1).trim();
-
+        const imdbId = imdbid;
         const documentId = filename.substr(filename.lastIndexOf("-") + 1).trim().split('.')[0];
         let linkInfo: any
         if (documentId.startsWith('S')) {

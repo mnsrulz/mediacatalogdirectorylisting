@@ -13,7 +13,7 @@ export class MediaSourceService {
 
     public async listMediaSources(imdbId: string, isMovie: boolean, defaultOnly: boolean = false): Promise<FileNode[]> {
         var allCacheLinksForGivenImdbId: any[] = await LinksCacheList.find({ imdbId: imdbId });
-
+        logger.info(`Listing media sources for imdbId: ${imdbId}, isMovie:${isMovie}, defaultOnly: ${defaultOnly}`);
         if (allCacheLinksForGivenImdbId.length === 0
             || allCacheLinksForGivenImdbId.some(x => x.lastUpdated < Date.now() - refreshLinkTimeout)) {
             logger.info('Refreshing the source for current imdbid');
@@ -44,6 +44,8 @@ export class MediaSourceService {
         } else {
             allCacheLinksForGivenImdbId = allCacheLinksForGivenImdbId.filter(x => x.status === 'Valid');
         }
+
+        logger.info(`Found ${allCacheLinksForGivenImdbId.length} items for imdbId: ${imdbId}`)
 
         const result: FileNode[] = allCacheLinksForGivenImdbId.map(x => {
             return {

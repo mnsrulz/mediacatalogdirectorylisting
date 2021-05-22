@@ -23,14 +23,26 @@ export class DirectoryController {
     }
 
     public async getMoviesOfYear(req: Request, res: Response) {
-        const mediaByYear = await mediaService.fetchMediaByYearNetlify('movie', req.params.year);
+        const mediaByYear = await mediaService.fetchMediaByYearNetlify('movie', parseInt(req.params.year));
         const result = await DirectoryController.GetRenderData(req.url, mediaByYear);
         res.end(result);
     }
 
     public async getTVShowsOfYear(req: Request, res: Response) {
-        const mediaByYear = await mediaService.fetchMediaByYearNetlify('tv', req.params.year);
+        const mediaByYear = await mediaService.fetchMediaByYearNetlify('tv', parseInt(req.params.year));
         const result = await DirectoryController.GetRenderData(req.url, mediaByYear);
+        res.end(result);
+    }
+
+    public async getPlexMovies(req: Request, res: Response) {
+        const plexMovies = await mediaService.fetchMediaPlexNetlify('movie');
+        const result = await DirectoryController.GetRenderData(req.url, plexMovies);
+        res.end(result);
+    }
+
+    public async getPlexTvs(req: Request, res: Response) {
+        const plexTvs = await mediaService.fetchMediaPlexNetlify('tv');
+        const result = await DirectoryController.GetRenderData(req.url, plexTvs);
         res.end(result);
     }
 
@@ -43,19 +55,16 @@ export class DirectoryController {
     }
 
     private static async getMediaSources(req: Request, res: Response, isMovie: boolean) {
-        const medianame: string = req.params.medianame || "";
-        const year: string = req.params.year;
-        const normalizedMediaName = medianame.substr(0, medianame.lastIndexOf("-")).trim();
-        const imdbId = medianame.substr(medianame.lastIndexOf("-") + 1).trim();
+        const { year, medianame, imdbid } = req.params;
 
         const defaultOnly = req.get('X-DEFAULT-ONLY')?.toString() === '1';  //special header to club files. Used in rclone http header setting so, we don't have to display all the sources
-        const allCacheLinksForGivenImdbId = await mediaSourceService.listMediaSources(imdbId, defaultOnly, isMovie);
-
+        const allCacheLinksForGivenImdbId = await mediaSourceService.listMediaSources(imdbid, isMovie, defaultOnly);
+console.log(year);
         isMovie ?
-            fileNameCleanerService.CleanMovieTitle(allCacheLinksForGivenImdbId, normalizedMediaName, year) :
-            fileNameCleanerService.CleanTvTitle(allCacheLinksForGivenImdbId, normalizedMediaName, year);
+            fileNameCleanerService.CleanMovieTitle(allCacheLinksForGivenImdbId, medianame, year) :
+            fileNameCleanerService.CleanTvTitle(allCacheLinksForGivenImdbId, medianame, year);
         const output = await DirectoryController.GetRenderData(req.url, allCacheLinksForGivenImdbId, {
-            imdbId
+            imdbId: imdbid
         });
         res.end(output);
     }

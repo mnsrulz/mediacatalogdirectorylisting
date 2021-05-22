@@ -22,20 +22,31 @@ export class Routes {
     public routes(app: express.Application): void {
         app.route('/').get(mw, this.directoryController.getRoot);
         app.route(['/movie', '/tv']).get(mw, this.directoryController.getYearsOfMovie);
-        app.route('/movie/:year').get(mw, this.directoryController.getMoviesOfYear);
-        app.route('/movie/:year/:medianame')
+        app.route('/plexmovie').get(mw, this.directoryController.getPlexMovies);
+        app.route('/plextv').get(mw, this.directoryController.getPlexTvs);
+        app.route('/plexmovie/:medianame-:year-:imdbid')
             .head(send405)
             .get(mw, this.directoryController.getMovieMediaSources);
-        app.route(['/movie/:year/:medianame/:filename', '/tv/:year/:medianame/:filename'])
+
+        app.route('/plextv/:medianame-:year-:imdbid')
+            .head(send405)
+            .get(mw, this.directoryController.getTVMediaSources);
+
+        app.route('/movie/:year').get(mw, this.directoryController.getMoviesOfYear);
+        app.route('/movie/:year/:medianame-:year-:imdbid')
+            .head(send405)
+            .get(mw, this.directoryController.getMovieMediaSources);
+        app.route(['/movie/:year/:medianame-:year-:imdbid/:filename', '/tv/:year/:medianame-:year-:imdbid/:filename',
+            '/plexmovie/:medianame-:year-:imdbid/:filename', '/plextv/:medianame-:year-:imdbid/:filename'])
             .head(this.mediaStreamingController.getMediaContentHead)
             .get(this.mediaStreamingController.getMediaContent);
 
         app.route('/tv/:year').get(mw, this.directoryController.getTVShowsOfYear);
-        app.route('/tv/:year/:medianame')
+        app.route('/tv/:year/:medianame-:year-:imdbid')
             .head(send405)
             .get(mw, this.directoryController.getTVMediaSources);
 
-        app.route(['/movie/:year/:medianame/refreshSources', '/tv/:year/:medianame/refreshSources']).post(this.jobController.refreshSources);
+        app.route('/api/:imdbid/refreshSources').post(this.jobController.refreshSources);
 
         app.route('/search').get(this.searchController.getIndex);
         app.route('/api/links').get(this.linkCacheController.getLinks);

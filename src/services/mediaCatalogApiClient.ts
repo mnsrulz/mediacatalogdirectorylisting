@@ -25,11 +25,22 @@ export const getMediaSources = async (imdbId: string) => {
     });
 }
 
+export const getPlaylistItems = async () => {
+    //playlists/6060ef70f862060008dd7383/items
+    const response = await authenticatedClient<{
+        items: MediaItemModel[]
+    }>(`playlists/6060ef70f862060008dd7383/items`, {
+        resolveBodyOnly: true
+    });
+    return response.items;
+}
+
 export interface MediaItemModel {
     id: string,
     title: string,
     year: number,
-    imdbId: string
+    imdbId: string,
+    itemType: string
 }
 
 export interface MediaSourceModel {
