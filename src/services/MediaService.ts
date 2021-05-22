@@ -24,8 +24,9 @@ const mapMediaItemsToFileNode = (items: MediaItemModel[]) => {
     //clean up any items which doesn't have an imdbid
     return items.filter(x => x.imdbId).sort((a, b) => a.title.localeCompare(b.title)).map((x) => {
         //const title = decodeURI(encodeURI(x.title).replace("%C2%A0", "%20"));   //may be some conversion needed
+        const title = x.title.replace(/-/g, ' '); //str.replace(/-/g, ' ')  //just so it won't clash
         const f: FileNode = {
-            id: `${x.title}-${x.year}-${x.imdbId}`,
+            id: `${title}-${x.year}-${x.imdbId}`,
             parent: x.id,
             //lastModified: x.lastModified,
             title: x.title,

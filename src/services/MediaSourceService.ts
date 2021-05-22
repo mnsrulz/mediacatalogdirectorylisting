@@ -109,12 +109,12 @@ export class MediaSourceService {
                 contentType: x.contentType,
                 size: size,
                 speedRank: x.speedRank,
+                title: x.title,
+                isPlayable: x.isPlayable,
                 lastModified: lastModified,  //CHANGED--We don't want to update the size and lastmodified in case the doucment already exists. To avoid any failure from the providers where they reuse the old id's.
                 $setOnInsert: {
-                    title: x.title,
                     imdbId: imdbId,
-                    parentLink: x.parent,
-                    isPlayable: x.isPlayable,
+                    parentLink: x.parent                    
                 }
             }, { upsert: true, setDefaultsOnInsert: true });
             allPromiseForPersistence.push(persistencePromise);
