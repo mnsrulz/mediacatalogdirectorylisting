@@ -5,6 +5,7 @@ import { FileNode } from "../models/fileNode";
 import { ResolvedMediaItem } from 'nurlresolver/dist/BaseResolver';
 import logger from "./../services/Logger";
 import { getMediaSources } from './mediaCatalogApiClient';
+import config from '../config';
 const LinksCacheList = mongoose.model('LinksCache', LinksCacheSchema);
 const MediaList = mongoose.model('MediaCatalog', MediaSchema);
 const refreshLinkTimeout = (1000 * 24 * 7 * 60 * 60); //7 Days of refreshness
@@ -84,7 +85,7 @@ export class MediaSourceService {
 
     public async fetchLinksAndPerformSave(imdbId: string, w: { webViewLink: string }) {
         var allResolvedLinks = await nurlresolver.resolveRecursive(w.webViewLink, {
-            timeout: 25,
+            timeout: config.urlResolverTimeout,
             extractMetaInformation: true
         });
         var allPromiseForPersistence: any[] = [];
